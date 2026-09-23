@@ -7,9 +7,9 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,15 +46,20 @@ public class MessageService {
     }
 
     /**
-     * Sends a message to a specified Discord channel.
+     * Sends a message to a specified Discord channel, optionally as a reply.
      *
-     * @param channelId The ID of the channel where the message will be sent.
-     * @param message   The content of the message to be sent.
+     * @param channelId         The ID of the channel where the message will be sent.
+     * @param message           The content of the message to be sent.
+     * @param replyToMessageId  Optional ID of the message to reply to (Discord message_reference).
+     * @param failIfNotExists   Optional true/false flag. When replying, defaults to true and maps
+     *                          to JDA failOnInvalidReply so a missing referenced message fails the send.
      * @return A confirmation message with a link to the sent message.
      */
-    @Tool(name = "send_message", description = "Send a message to a specific channel")
+    @Tool(name = "send_message", description = "Send a message to a specific channel. Optionally reply to an existing message with replyToMessageId (Discord message_reference).")
     public String sendMessage(@ToolParam(description = "Discord channel ID") String channelId,
-                              @ToolParam(description = "Message content") String message) {
+                              @ToolParam(description = "Message content") String message,
+                              @ToolParam(description = "Message ID to reply to (sets Discord message_reference)", required = false) String replyToMessageId,
+                              @ToolParam(description = "Fail if the referenced reply message does not exist (true/false, default true when replying)", required = false) String failIfNotExists) {
         if (channelId == null || channelId.isEmpty()) {
             throw new IllegalArgumentException("channelId cannot be null");
         }
@@ -66,7 +71,17 @@ public class MessageService {
         if (channel == null) {
             throw new IllegalArgumentException("Channel not found by channelId");
         }
-        Message sentMessage = channel.sendMessage(message).complete();
+
+        MessageCreateAction action = channel.sendMessage(message);
+        if (replyToMessageId != null && !replyToMessageId.isBlank()) {
+            action.setMessageReference(replyToMessageId);
+            // JDA defaults failOnInvalidReply to false; when a reply is requested, default to true.
+            boolean failOnInvalidReply = failIfNotExists == null
+                    || failIfNotExists.isBlank()
+                    || Boolean.parseBoolean(failIfNotExists);
+            action.failOnInvalidReply(failOnInvalidReply);
+        }
+        Message sentMessage = action.complete();
         return "Message sent successfully. Message link: " + sentMessage.getJumpUrl();
     }
 
