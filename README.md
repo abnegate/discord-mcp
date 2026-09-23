@@ -323,12 +323,16 @@ Remote MCP Connector:
 - [`read_private_messages`](): Read private message history from a specific user (includes attachment metadata, supports `count` 1-100 and optional cursor: `before` or `after` or `around`)
 
 #### Message Management
-- [`send_message`](): Send a message to a specific channel
+- [`send_message`](): Send a message to a specific channel. Optional `replyToMessageId` sends a true Discord reply (`message_reference`). Optional `failIfNotExists` (`true`/`false`, default `true` when replying) fails if the referenced message is missing.
 - [`edit_message`](): Edit a message from a specific channel
 - [`delete_message`](): Delete a message from a specific channel
 - [`read_messages`](): Read message history from a specific channel (includes attachment metadata, supports `count` 1-100 and optional cursor: `before` or `after` or `around`)
 - [`add_reaction`](): Add a reaction (emoji) to a specific message
 - [`remove_reaction`](): Remove a specified reaction (emoji) from a message
+
+#### Thread Management
+- [`list_active_threads`](): List all active threads in the server
+- [`create_thread_from_message`](): Create a public thread from an existing message (`channelId`, `messageId`, `name`, optional `autoArchiveDuration` minutes: `60`, `1440`, `4320`, or `10080`). Returns the new thread `channelId` so you can `send_message` into it.
 
 #### Channel Management
 - [`create_text_channel`](): Create a new text channel
