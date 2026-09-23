@@ -323,12 +323,46 @@ Remote MCP Connector:
 - [`read_private_messages`](): Read private message history from a specific user (includes attachment metadata, supports `count` 1-100 and optional cursor: `before` or `after` or `around`)
 
 #### Message Management
-- [`send_message`](): Send a message to a specific channel. Optional `replyToMessageId` sends a true Discord reply (`message_reference`). Optional `failIfNotExists` (`true`/`false`, default `true` when replying) fails if the referenced message is missing.
-- [`edit_message`](): Edit a message from a specific channel
+- [`send_message`](): Send a message to a specific channel. Optional `replyToMessageId` sends a true Discord reply (`message_reference`). Optional `failIfNotExists` (`true`/`false`, default `true` when replying) fails if the referenced message is missing. Optional `embedsJson` attaches rich embeds. Optional `attachmentPaths` / `attachmentsJson` upload files on the same message. `message` may be omitted when embeds or attachments are provided.
+- [`edit_message`](): Edit a message from a specific channel. Accepts the same optional `embedsJson`, `attachmentPaths`, and `attachmentsJson` as `send_message`. `newMessage` may be omitted when embeds or attachments are provided. Providing attachments replaces the message's existing files.
 - [`delete_message`](): Delete a message from a specific channel
 - [`read_messages`](): Read message history from a specific channel (includes attachment metadata, supports `count` 1-100 and optional cursor: `before` or `after` or `around`)
 - [`add_reaction`](): Add a reaction (emoji) to a specific message
 - [`remove_reaction`](): Remove a specified reaction (emoji) from a message
+
+**Embeds (`embedsJson`)** — JSON array of embed objects (max 10). Each object may include `title`, `titleUrl` or `url` (clickable title), `description`, `color` (RGB int or hex like `#5865F2` / `0x5865F2`), `footer` (string or `{ text, iconUrl? }`), `author` (`{ name, url?, iconUrl? }`), `fields` (`[{ name, value, inline? }]`), `thumbnailUrl`, `imageUrl`, and `timestamp` (ISO-8601).
+
+GitHub-style release card:
+
+```json
+[
+  {
+    "author": {
+      "name": "my-org/my-app",
+      "url": "https://github.com/my-org/my-app",
+      "iconUrl": "https://github.com/my-org.png"
+    },
+    "title": "v1.2.0",
+    "titleUrl": "https://github.com/my-org/my-app/releases/tag/v1.2.0",
+    "description": "## What's Changed\n* Add Discord embeds by @alice in https://github.com/my-org/my-app/pull/42\n* Fix reply handling by @bob in https://github.com/my-org/my-app/pull/41",
+    "color": "#5865F2",
+    "footer": "Full changelog: https://github.com/my-org/my-app/compare/v1.1.0...v1.2.0"
+  }
+]
+```
+
+**Attachments** — up to 10 files per message. This server rejects files larger than 25 MB before upload; Discord's default bot limit is 10 MB per file (higher on boosted servers). Prefer `attachmentPaths` for local QA screenshots; `attachmentsJson` is a fallback for `{ path }` and `{ filename, base64 }` / data-URI payloads.
+
+Reply + release embed + one PNG:
+
+```json
+{
+  "channelId": "123456789012345678",
+  "replyToMessageId": "987654321098765432",
+  "embedsJson": "[{\"title\":\"v1.2.0\",\"titleUrl\":\"https://github.com/my-org/my-app/releases/tag/v1.2.0\",\"description\":\"## What's Changed\\n* Fix mobile table overflow\",\"color\":\"#5865F2\",\"footer\":\"QA visual check\"}]",
+  "attachmentPaths": "[\"/var/qa/screenshots/mobile-table-overflow.png\"]"
+}
+```
 
 #### Thread Management
 - [`list_active_threads`](): List all active threads in the server
