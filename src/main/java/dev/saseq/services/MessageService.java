@@ -217,7 +217,7 @@ public class MessageService {
      * @param around    Optional message ID to fetch messages around this message.
      * @return A formatted string containing the retrieved messages.
      */
-    @Tool(name = "read_messages", description = "Read message history from a specific channel, optionally paginated with before/after/around")
+    @Tool(name = "read_messages", description = "Read message history from a specific channel, optionally paginated with before/after/around. Each line includes authorId (Discord snowflake).")
     public String readMessages(@ToolParam(description = "Discord channel ID") String channelId,
                                @ToolParam(description = "Number of messages to retrieve (1-100)", required = false) String count,
                                @ToolParam(description = "Message ID to fetch messages before this message", required = false) String before,
@@ -431,12 +431,13 @@ public class MessageService {
         return messages.stream()
                 .map(m -> {
                     String authorName = m.getAuthor().getName();
+                    String authorId = m.getAuthor().getId();
                     String timestamp = m.getTimeCreated().toString();
                     String content = m.getContentDisplay();
                     String msgId = m.getId();
 
                     StringBuilder sb = new StringBuilder();
-                    sb.append(String.format("- (ID: %s) **[%s]** `%s`: ```%s```", msgId, authorName, timestamp, content));
+                    sb.append(String.format("- (ID: %s) **[%s]** (authorId: %s) `%s`: ```%s```", msgId, authorName, authorId, timestamp, content));
 
                     List<Message.Attachment> attachments = m.getAttachments();
                     if (!attachments.isEmpty()) {
