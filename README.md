@@ -38,6 +38,7 @@ export SPRING_PROFILES_ACTIVE=http
 
 > [!IMPORTANT]
 > Instructions for creating a Discord bot and retrieving its token can be found [here](https://discordjs.guide/legacy/preparations/app-setup).
+> Enable the privileged **Server Members Intent** on the bot so member lookup tools can load the full roster (`get_user_id_by_name`, `list_guild_members`). JDA already requests `GUILD_MEMBERS`.
 
 > [!TIP]
 > The `DISCORD_GUILD_ID` env variable is optional.
@@ -316,17 +317,18 @@ Remote MCP Connector:
 - [`get_server_info`](): Get detailed discord server information
 
 #### User Management
-- [`get_user_id_by_name`](): Get a Discord user's ID by username in a guild for ping usage `<@id>`
+- [`get_user_id_by_name`](): Get a Discord user's ID by username in a guild for ping usage `<@id>`. Loads/retrieves members instead of a cold cache. Supports optional `username#discriminator` and errors on ambiguous matches. Also matches nickname/display name, and a unique username prefix (e.g. `abnegate` → `abnegate.`).
+- [`list_guild_members`](): List members in a guild with `username`, `nickname` (if any), `displayName`, and `id` (and `bot=true` for bots). Loads the roster instead of a cold cache. Intended for small servers.
 - [`send_private_message`](): Send a private message to a specific user
 - [`edit_private_message`](): Edit a private message from a specific user
 - [`delete_private_message`](): Delete a private message from a specific user
-- [`read_private_messages`](): Read private message history from a specific user (includes attachment metadata, supports `count` 1-100 and optional cursor: `before` or `after` or `around`)
+- [`read_private_messages`](): Read private message history from a specific user (includes attachment metadata and `authorId` Discord snowflake, supports `count` 1-100 and optional cursor: `before` or `after` or `around`)
 
 #### Message Management
 - [`send_message`](): Send a message to a specific channel. Optional `replyToMessageId` sends a true Discord reply (`message_reference`). Optional `failIfNotExists` (`true`/`false`, default `true` when replying) fails if the referenced message is missing. Optional `embedsJson` attaches rich embeds. Optional `attachmentPaths` / `attachmentsJson` upload files on the same message. `message` may be omitted when embeds or attachments are provided.
 - [`edit_message`](): Edit a message from a specific channel. Accepts the same optional `embedsJson`, `attachmentPaths`, and `attachmentsJson` as `send_message`. `newMessage` may be omitted when embeds or attachments are provided. Providing attachments replaces the message's existing files.
 - [`delete_message`](): Delete a message from a specific channel
-- [`read_messages`](): Read message history from a specific channel (includes attachment metadata, supports `count` 1-100 and optional cursor: `before` or `after` or `around`)
+- [`read_messages`](): Read message history from a specific channel (includes attachment metadata and `authorId` Discord snowflake on each line, supports `count` 1-100 and optional cursor: `before` or `after` or `around`)
 - [`add_reaction`](): Add a reaction (emoji) to a specific message
 - [`remove_reaction`](): Remove a specified reaction (emoji) from a message
 
